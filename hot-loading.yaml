@@ -16,13 +16,13 @@ spec:
         args:
         - /bin/sh
         - -c
-        - cp bb.py temp.py; python bb.py
+        - cp application.py temp.py; python application.py
         livenessProbe:
           exec:
             command:
             - /bin/sh
             - -c
-            - '`/usr/bin/cmp -s /code/bb.py /code/temp.py`'
+            - '`/usr/bin/cmp -s /code/application.py /code/temp.py`'
           initialDelaySeconds: 5
           periodSeconds: 1
         name: flask
