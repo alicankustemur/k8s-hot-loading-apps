@@ -1,0 +1,63 @@
+---
+- hosts: kubernetes
+  gather_facts: yes
+  become: yes
+
+  vars:
+    home: "{{ lookup('env','HOME') }}"
+    user: "{{ lookup('env','USER') }}"
+    swapfile_path: /swap
+    kubernetes_version: '1.10'
+    kubernetes_allow_pods_on_master: True
+    kubernetes_kubelet_extra_args: "--eviction-max-pod-grace-period=-1"
+    docker_version: "17.03.0~ce-0"
+    docker_package: "docker-ce={{ docker_version }}~ubuntu-xenial"
+    docker_users:
+      - "{{ user }}"
+
+  pre_tasks:
+    - name: Update apt cache.
+      apt: update_cache=yes cache_valid_time=3600
+      when: ansible_os_family == 'Debian'
+
+    - name: Ensure swap is disabled.
+      mount:
+        path: "{{ swapfile_path }}"
+        fstype: swap
+        state: absent
+
+    - name: Disable swap.
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+    
+  roles:
+    - geerlingguy.docker
+    - geerlingguy.kubernetes
+
+  tasks:
+    - name: Copy KUBECONFIG file to home path
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ home }}/admin.conf"
+        remote_src: yes
+        mode: 444
+      
+    - name: Add KUBECONFIG env to .bashrc
+      lineinfile:
+        path: '{{ home }}/.bashrc'
+        line: 'export KUBECONFIG=~/admin.conf'
+        state: present
+    
+    - name: Build python app Docker image  
+      command: "docker build -t flask ."
+      args:
+        chdir: /vagrant/python-app/
+      register: python_app_docker_build
+      changed_when: "'Installing' in python_app_docker_build.stdout"  
+
+    - name: Apply hot-loading 
+      command: "kubectl apply -f /vagrant/k8s-definitions/python/"
+      register: hot_loading_result
+      changed_when: "'created' in hot_loading_result.stdout"    
+    
+      

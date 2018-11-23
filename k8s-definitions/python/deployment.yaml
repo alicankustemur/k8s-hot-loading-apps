@@ -1,0 +1,46 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: flask
+spec:
+  selector:
+    matchLabels:
+      app: flask  
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      terminationGracePeriodSeconds: 1
+      restartPolicy: Always
+      containers:
+      - name: flask
+        image: flask:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        args:
+        - /bin/sh
+        - -c
+        - cp application.py temp.py; python application.py
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - '`/usr/bin/cmp -s /code/application.py /code/temp.py`'
+          initialDelaySeconds: 1
+          periodSeconds: 1
+          timeoutSeconds: 1
+        resources: {}
+        volumeMounts:
+        - mountPath: /code
+          name: code
+      volumes:
+      - name: code
+        persistentVolumeClaim:
+          claimName: code
+status: {}
+---
