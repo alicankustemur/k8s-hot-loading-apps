@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: flask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask    
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: mysql
+        image: mysql:5.6
+        imagePullPolicy: IfNotPresent
+        args:
+          - --character-set-server=utf8
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: vb7jKUVapNLyykBv
+        - name: MYSQL_DATABASE
+          value: root
+        ports:
+        - containerPort: 3306
+        resources:
+          limits:
+            memory: 512Mi
+---

@@ -14,6 +14,7 @@
     docker_package: "docker-ce={{ docker_version }}~ubuntu-xenial"
     docker_users:
       - "{{ user }}"
+    k8s_definitions_path: "/vagrant/k8s-definitions/"  
 
   pre_tasks:
     - name: Update apt cache.
@@ -25,10 +26,33 @@
         path: "{{ swapfile_path }}"
         fstype: swap
         state: absent
+    
+    - name: Remove swap line on fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: "swap"
+        state: absent
 
     - name: Disable swap.
       command: swapoff -a
       when: ansible_swaptotal_mb > 0
+
+    - name: Install the package "python-pip"
+      apt:
+        name: python-pip
+        update_cache: yes
+    
+    - name: Install pip packages
+      pip:
+        name: jmespath # for json_query
+        version: 0.9.3
+    
+    - name: Build python app Docker image  
+      command: "docker build -t flask ."
+      args:
+        chdir: /vagrant/python-app/
+      register: python_app_docker_build
+      changed_when: "'Installing' in python_app_docker_build.stdout"
     
   roles:
     - geerlingguy.docker
@@ -48,16 +72,30 @@
         line: 'export KUBECONFIG=~/admin.conf'
         state: present
     
-    - name: Build python app Docker image  
-      command: "docker build -t flask ."
+    - name: Apply weaveworks network plugin
+      command: kubectl apply -f weaveworks.yaml
       args:
-        chdir: /vagrant/python-app/
-      register: python_app_docker_build
-      changed_when: "'Installing' in python_app_docker_build.stdout"  
-
-    - name: Apply hot-loading 
-      command: "kubectl apply -f /vagrant/k8s-definitions/python/"
-      register: hot_loading_result
-      changed_when: "'created' in hot_loading_result.stdout"    
+        chdir: "{{ k8s_definitions_path }}"
+      register: weaveworks_network_plugin
+      changed_when: "'created' or 'configured' in weaveworks_network_plugin.stdout"    
     
-      
+    - name: Apply mysql 
+      command: kubectl apply -f mysql/
+      args:
+        chdir: "{{ k8s_definitions_path }}"
+      register: mysql
+      changed_when: "'created' or 'configured' in mysql.stdout"
+    
+    - name: Apply python app
+      command: "kubectl apply -f python-app/"
+      args:
+        chdir: "{{ k8s_definitions_path }}"
+      register: pythonapp
+      changed_when: "'created' or 'configured' in pythonapp.stdout"    
+
+    - name: wait for pods to come up
+      command: kubectl get pods --all-namespaces -o json
+      register: kubectl_get_pods
+      until: kubectl_get_pods.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+      retries: 20
+      delay: 10
