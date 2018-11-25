@@ -37,28 +37,18 @@
       command: swapoff -a
       when: ansible_swaptotal_mb > 0
 
-    - name: Install the package "python-pip"
-      apt:
-        name: python-pip
-        update_cache: yes
-    
-    - name: Install pip packages
-      pip:
-        name: jmespath # for json_query
-        version: 0.9.3
-    
+  roles:
+    - geerlingguy.docker
+    - geerlingguy.kubernetes
+
+  tasks:
     - name: Build python app Docker image  
       command: "docker build -t flask ."
       args:
         chdir: /vagrant/python-app/
       register: python_app_docker_build
       changed_when: "'Installing' in python_app_docker_build.stdout"
-    
-  roles:
-    - geerlingguy.docker
-    - geerlingguy.kubernetes
 
-  tasks:
     - name: Copy KUBECONFIG file to home path
       copy:
         src: /etc/kubernetes/admin.conf
@@ -92,10 +82,3 @@
         chdir: "{{ k8s_definitions_path }}"
       register: pythonapp
       changed_when: "'created' or 'configured' in pythonapp.stdout"    
-
-    - name: wait for pods to come up
-      command: kubectl get pods --all-namespaces -o json
-      register: kubectl_get_pods
-      until: kubectl_get_pods.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
-      retries: 20
-      delay: 10
