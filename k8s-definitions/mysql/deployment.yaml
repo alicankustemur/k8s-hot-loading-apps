@@ -4,16 +4,16 @@ kind: Deployment
 metadata:
   name: mysql
   labels:
-    app: flask
+    app: python-mysql
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: flask
+      app: python-mysql
   template:
     metadata:
       labels:
-        app: flask    
+        app: python-mysql    
     spec:
       terminationGracePeriodSeconds: 1
       containers:

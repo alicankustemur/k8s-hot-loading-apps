@@ -4,11 +4,11 @@ kind: Service
 metadata:
   name: mysql
   labels:
-    app: flask
+    app: python-mysql
 spec:
   type: NodePort
   selector:
-    app: flask
+    app: python-mysql
   ports:
   - name: mysql-port
     nodePort: 31006
