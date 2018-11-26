@@ -9,7 +9,6 @@
     swapfile_path: /swap
     kubernetes_version: '1.10'
     kubernetes_allow_pods_on_master: True
-    kubernetes_kubelet_extra_args: "--eviction-max-pod-grace-period=-1"
     docker_version: "17.03.0~ce-0"
     docker_package: "docker-ce={{ docker_version }}~ubuntu-xenial"
     docker_users:
