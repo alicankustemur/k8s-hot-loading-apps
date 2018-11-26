@@ -1,0 +1,11 @@
+kube ansible_connection=local
+
+[kubernetes]
+kube
+
+[kubernetes_master]
+kube
+
+[kubernetes_master:vars]
+kubernetes_role=master
+kubernetes_apiserver_advertise_address=192.168.31.50

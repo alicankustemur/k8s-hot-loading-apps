@@ -10,20 +10,12 @@ Vagrant.configure(2) do |config|
       kube.vm.hostname = "kube"
       kube.vm.network "private_network", ip: "#{KUBE_IP}"
       kube.vm.provision "ansible_local" do |ansible|
-        ansible.playbook = "main.yml"
-        ansible.galaxy_role_file = 'requirements.yml'
-        ansible.limit = "all"
+        ansible.playbook = "main.yaml"
+        ansible.galaxy_role_file = 'requirements.yaml'
+        ansible.inventory_path = "/vagrant/inventory"
         ansible.become = true
         ansible.raw_arguments = ["-v"]
-        ansible.groups = {
-          "kubernetes" => ["kube"],
-          "kubernetes_master" => ["kube"],
-          "kubernetes_master:vars" => {
-            kubernetes_role: "master",
-            kubernetes_apiserver_advertise_address: "#{KUBE_IP}"
-          }
-        }
-      end  
+      end
 
       kube.vm.provider "virtualbox" do |vb|
         vb.memory = 2048
