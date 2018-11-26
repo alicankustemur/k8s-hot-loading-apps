@@ -250,7 +250,7 @@ args:
 
 For Example:
 
-[k8s-hot-loadings GIF](k8s-hot-loading-apps.gif)
+![k8s-hot-loadings GIF](k8s-hot-loading-apps.gif)
 
 ```
   volumeMounts:
