@@ -10,7 +10,7 @@ def hello_world():
   storage = Storage()
   storage.populate()
   score = storage.score()
-  return "Hello Devops 123, %d!" % score
+  return "hot-loading-apps   %d!" % score
 
 class Storage():
   def __init__(self):

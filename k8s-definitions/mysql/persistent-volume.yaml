@@ -2,13 +2,13 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: code
+  name: mysql-persistent-volume
 spec:
-  storageClassName: manual
+  storageClassName: mysql-storage
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/vagrant/python-app/"
+    path: "/home/vagrant/mysql-data/"
 ---

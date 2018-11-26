@@ -35,6 +35,9 @@
     - name: Disable swap.
       command: swapoff -a
       when: ansible_swaptotal_mb > 0
+    
+    - name: Create directory for mysql stateful data
+      file: path="{{ home }}/mysql-data" state=directory
 
   roles:
     - geerlingguy.docker
@@ -44,9 +47,9 @@
     - name: Build python app Docker image  
       command: "docker build -t flask ."
       args:
-        chdir: /vagrant/python-app/
-      register: python_app_docker_build
-      changed_when: "'Installing' in python_app_docker_build.stdout"
+        chdir: /vagrant/python-mysql/
+      register: docker_build_python_mysql
+      changed_when: "'Installing' in docker_build_python_mysql.stdout"
 
     - name: Copy KUBECONFIG file to home path
       copy:
@@ -76,7 +79,7 @@
       changed_when: "'created' or 'configured' in mysql.stdout"
     
     - name: Apply python app
-      command: "kubectl apply -f python-app/"
+      command: "kubectl apply -f python-mysql/"
       args:
         chdir: "{{ k8s_definitions_path }}"
       register: pythonapp

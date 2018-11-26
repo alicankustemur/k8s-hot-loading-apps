@@ -3,8 +3,6 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: mysql
-  labels:
-    app: python-mysql
 spec:
   replicas: 1
   selector:
@@ -13,9 +11,10 @@ spec:
   template:
     metadata:
       labels:
-        app: python-mysql    
+        app: python-mysql
+        name: mysql
     spec:
-      terminationGracePeriodSeconds: 1
+      terminationGracePeriodSeconds: 2
       containers:
       - name: mysql
         image: mysql:5.6
@@ -32,4 +31,11 @@ spec:
         resources:
           limits:
             memory: 512Mi
+        volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-persistent-volume-claim    
 ---

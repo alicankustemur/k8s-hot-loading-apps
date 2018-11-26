@@ -13,7 +13,7 @@ spec:
       labels:
         app: python-mysql
     spec:
-      terminationGracePeriodSeconds: 1
+      terminationGracePeriodSeconds: 2
       restartPolicy: Always
       containers:
       - name: python-mysql
@@ -23,7 +23,7 @@ spec:
           - name: MYSQL_USERNAME
             value: root 
           - name: MYSQL_PASSWORD
-            value: vb7jKUVapNLyykBv 
+            value: vb7jKUVapNLyykBv
           - name: MYSQL_INSTANCE_NAME
             value: root 
           - name: MYSQL_TCP_ADDR
@@ -42,9 +42,9 @@ spec:
             - /bin/sh
             - -c
             - '`/usr/bin/cmp -s /code/application.py /code/temp.py`'
-          initialDelaySeconds: 1
-          periodSeconds: 1
-          timeoutSeconds: 1
+          initialDelaySeconds: 2
+          periodSeconds: 2
+          timeoutSeconds: 2
         resources:
           limits:
             memory: 256Mi

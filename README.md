@@ -1,6 +1,8 @@
 
 # k8s Hot Loading Apps ( Beta )
 
+![k8s-hot-loadings GIF](k8s-hot-loading-apps.gif)
+
 ## Background
 We want only focus to the code when developing applications in any language.
 But for that we always want the environment to work.
@@ -35,6 +37,30 @@ adding the line below:
 ```
 192.168.31.50  kube
 ```
+
+You just need to install `Vagrant` and `VirtualBox`.
+
+You can cd into any of the included directories and run `vagrant up`, and a generic `Linux VM` will be booted and configured in a few minutes. 
+
+Once `Vagrant` provisioning finished, run `vagrant ssh` and log into `kube` VM then check pods statuses. 
+
+```
+vagrant@kube:~$ kubectl get pods --all-namespaces
+NAMESPACE     NAME                            READY     STATUS    RESTARTS   AGE
+default       mysql-675576cbd8-8nwlj          1/1       Running   2          1h
+default       python-mysql-566df64fcb-jwx66   1/1       Running   4          40m
+kube-system   etcd-kube                       1/1       Running   2          1h
+kube-system   kube-apiserver-kube             1/1       Running   2          1h
+kube-system   kube-controller-manager-kube    1/1       Running   2          1h
+kube-system   kube-dns-86f4d74b45-r9kc9       3/3       Running   6          1h
+kube-system   kube-flannel-ds-amd64-xpkx7     1/1       Running   2          1h
+kube-system   kube-proxy-4dlvr                1/1       Running   2          1h
+kube-system   kube-scheduler-kube             1/1       Running   2          1h
+kube-system   weave-net-km79d
+```
+
+To see `python-mysql Application`, type `kube:31000` in the browser .
+
 
 ## Infrastructure
 `Vagrant` is infrastructure orchestrator for development environments.
@@ -74,8 +100,8 @@ vagrant@kube:/vagrant/k8s-definitions$ tree
 .
 ├── mysql
 │   ├── deployment.yaml
-│   ├── mysql.yaml
-│   ├── persistentvolumeclaim.yaml
+│   ├── persistent-volume-claim.yaml
+│   ├── persistent-volume.yaml
 │   └── service.yaml
 ├── python-mysql
 │   ├── deployment.yaml
@@ -83,6 +109,8 @@ vagrant@kube:/vagrant/k8s-definitions$ tree
 │   ├── persistent-volume-claim.yaml
 │   └── service.yaml
 └── weaveworks.yaml
+
+2 directories, 9 files
 ```
 
 ### - Definitions
@@ -90,11 +118,16 @@ vagrant@kube:/vagrant/k8s-definitions$ tree
 #### mysql
 
 ```
-├── mysql
-│   ├── deployment.yaml
-│   └── service.yaml
+vagrant@kube:/vagrant/k8s-definitions/mysql$ tree
+.
+├── deployment.yaml
+├── persistent-volume-claim.yaml
+├── persistent-volume.yaml
+└── service.yaml
+
+0 directories, 4 files
 ```
-All definition labels are `python-mysql` :
+All definition labels are `app:python-mysql` and only mysql `Deployment` definition has `name:mysql` label. :
 
 ```
 labels:
@@ -128,14 +161,66 @@ Pods access `mysql` service with this way in same namespace.
 
 [Kubernetes DNS-Based Service Discovery](https://github.com/kubernetes/dns/blob/master/docs/specification.md)
 
+`PersistentVolume` mounts `/home/vagrant/mysql-data/` to `/var/lib/mysql`. 
+
+ The mysql container will use the `PersistentVolumeClaim` and mount the persistent disk at `/var/lib/mysql` inside the container.
+
+### - Test mysql persistent data
+
+With `PersistentVolumes`, your data lives outside the application container. Run the following command in `kube VM`
+
+Now, delete the `mysql` Pod by running:
+
+```
+kubectl delete pod  -l name=mysql
+```
+
+then check persist data in new Pod.
+
+```
+ kubectl exec -it $(kubectl get pod -l name=mysql -o name | sed 's/pod\///g') -- bash
+
+root@mysql-6887764894-bbkvh:/# mysql -u root -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.6.42 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use root; select * from scores;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
++-------+
+| score |
++-------+
+|  1234 |
+|  1234 |
++-------+
+2 rows in set (0.00 sec)
+```
+The data is persisted even though you deleted your Pod and the Pod is scheduled to another instance in your cluster.
+
+
 ### python-mysql
 
 ```
-├── python-mysql
-│   ├── deployment.yaml
-│   ├── persistence-volume.yaml
-│   ├── persistent-volume-claim.yaml
-│   └── service.yaml
+vagrant@kube:/vagrant/k8s-definitions/python-mysql$ tree
+.
+├── deployment.yaml
+├── persistence-volume.yaml
+├── persistent-volume-claim.yaml
+└── service.yaml
+
+0 directories, 4 files
 ```
 
 `persistence-volume.yaml` 
@@ -161,6 +246,16 @@ Our application code is in `/vagrant/python-mysql/`.
 
 `PersistentVolume` mounts `/vagrant/python-mysql/` to `/code`. 
 
+```
+  volumeMounts:
+  - mountPath: /code
+    name: code
+volumes:
+- name: code
+  persistentVolumeClaim:
+    claimName: code
+```
+
 
 `deployment.yaml`
 
@@ -183,7 +278,7 @@ env:
 
 ```
 spec:
-  terminationGracePeriodSeconds: 1
+  terminationGracePeriodSeconds: 2
 ```
 If the pod give an error, it graceful shutdowns and restarts.
 
@@ -241,44 +336,9 @@ livenessProbe:
 `livenessProbe` notices it and restarts Pod.
 In this way the new `application.py` code runs with Pod commands and this is repeated continuously.
 
-```
-args:
-- /bin/sh
-- -c
-- cp application.py temp.py; gunicorn --bind 0.0.0.0:3000 application:application
-```
-
 For Example:
 
 ![k8s-hot-loadings GIF](k8s-hot-loading-apps.gif)
-
-```
-  volumeMounts:
-  - mountPath: /code
-    name: code
-volumes:
-- name: code
-  persistentVolumeClaim:
-    claimName: code
-```
-
-
-
-
-
-
-
-
-
-
-
-You just need to install `Vagrant` and `VirtualBox`.
-
-You can cd into any of the included directories and run `vagrant up`, and a generic `Linux VM` will be booted and configured in a few minutes. 
-
-Once `Vagrant` provisioning finished, run `vagrant ssh` and log into `kube` VM. Then check pods. 
-
-
 
 Used Versions:
 

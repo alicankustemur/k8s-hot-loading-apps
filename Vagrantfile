@@ -14,11 +14,10 @@ Vagrant.configure(2) do |config|
         ansible.galaxy_role_file = 'requirements.yaml'
         ansible.inventory_path = "/vagrant/inventory"
         ansible.become = true
-        ansible.raw_arguments = ["-v"]
       end
 
       kube.vm.provider "virtualbox" do |vb|
-        vb.memory = 2048
+        vb.memory = 1500
         vb.cpus = 2
       end
       
