@@ -133,6 +133,7 @@ All definition labels are `app:python-mysql` and only mysql `Deployment` definit
 ```
 labels:
     app: python-mysql
+    name: mysql
 ```
 
 more : [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
