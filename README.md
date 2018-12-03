@@ -61,6 +61,7 @@ kube-system   weave-net-km79d
 
 To see `python-mysql Application`, type `kube:31000` in the browser .
 
+[![asciicast](https://asciinema.org/a/nLDxo9wRtgSHgA434Rkzorufk.svg)](https://asciinema.org/a/nLDxo9wRtgSHgA434Rkzorufk)
 
 ## Infrastructure
 `Vagrant` is infrastructure orchestrator for development environments.
