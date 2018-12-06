@@ -21,11 +21,20 @@ spec:
         imagePullPolicy: Never
         env:
           - name: MYSQL_USERNAME
-            value: root 
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: mysql_user
           - name: MYSQL_PASSWORD
-            value: vb7jKUVapNLyykBv
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: mysql_root_password
           - name: MYSQL_INSTANCE_NAME
-            value: root 
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: mysql_database 
           - name: MYSQL_TCP_ADDR
             value: mysql.default.svc 
           - name: MYSQL_TCP_PORT

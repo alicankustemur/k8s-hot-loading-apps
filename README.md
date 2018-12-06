@@ -103,6 +103,7 @@ vagrant@kube:/vagrant/k8s-definitions$ tree
 │   ├── deployment.yaml
 │   ├── persistent-volume-claim.yaml
 │   ├── persistent-volume.yaml
+│   ├── secret.yaml
 │   └── service.yaml
 ├── python-mysql
 │   ├── deployment.yaml
@@ -124,9 +125,10 @@ vagrant@kube:/vagrant/k8s-definitions/mysql$ tree
 ├── deployment.yaml
 ├── persistent-volume-claim.yaml
 ├── persistent-volume.yaml
+├── secret.yaml
 └── service.yaml
 
-0 directories, 4 files
+0 directories, 5 files
 ```
 All definition labels are `app:python-mysql` and only mysql `Deployment` definition has `name:mysql` label. :
 
@@ -163,6 +165,31 @@ Pods access `mysql` service with this way in same namespace.
 
 [Kubernetes DNS-Based Service Discovery](https://github.com/kubernetes/dns/blob/master/docs/specification.md)
 
+`secret.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secrets
+type: Opaque
+data:
+  mysql_user: cm9vdA==
+  mysql_database: cm9vdA==
+  mysql_root_password: dmI3aktVVmFwTkx5eWtCdg==
+```
+
+
+A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key. 
+
+```
+echo -n 'root' | base64
+cm9vdA==
+echo -n 'vb7jKUVapNLyykBv' | base64
+dmI3aktVVmFwTkx5eWtCdg==
+
+```
+
+
 `PersistentVolume` mounts `/home/vagrant/mysql-data/` to `/var/lib/mysql`. 
 
  The mysql container will use the `PersistentVolumeClaim` and mount the persistent disk at `/var/lib/mysql` inside the container.
@@ -177,7 +204,7 @@ Now, delete the `mysql` Pod by running:
 kubectl delete pod  -l name=mysql
 ```
 
-then check persist data in new Pod.
+then check persist data in new Pod. ( password is `vb7jKUVapNLyykBv`)
 
 ```
  kubectl exec -it $(kubectl get pod -l name=mysql -o name | sed 's/pod\///g') -- bash
@@ -265,13 +292,22 @@ mysql connection environments
 
 ```
 env:
-  - name: MYSQL_USERNAME
-    value: root 
-  - name: MYSQL_PASSWORD
-    value: vb7jKUVapNLyykBv 
-  - name: MYSQL_INSTANCE_NAME
-    value: root 
-  - name: MYSQL_TCP_ADDR
+- name: MYSQL_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: mysql-secrets
+      key: mysql_user
+- name: MYSQL_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: mysql-secrets
+      key: mysql_root_password
+- name: MYSQL_INSTANCE_NAME
+  valueFrom:
+    secretKeyRef:
+      name: mysql-secrets
+      key: mysql_database 
+- name: MYSQL_TCP_ADDR
     value: mysql.default.svc 
   - name: MYSQL_TCP_PORT
     value: "3306"

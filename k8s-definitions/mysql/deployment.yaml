@@ -23,9 +23,15 @@ spec:
           - --character-set-server=utf8
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: vb7jKUVapNLyykBv
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: mysql_root_password
         - name: MYSQL_DATABASE
-          value: root
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: mysql_database
         ports:
         - containerPort: 3306
         resources:
