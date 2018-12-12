@@ -378,10 +378,17 @@ For Example:
 
 ![k8s-hot-loadings GIF](k8s-hot-loading-apps.gif)
 
-Used Versions:
+## Used Versions:
 
 - Kubernetes : `1.10`
 - Docker : `17.03.0~ce-0`
  ( Because Kubernetes `1.10` version  validated docker versions `1.11.2` to `1.13.1` and `17.03.x`)
  [Kubernetes 1.10 CHANGELOG - External Dependencies](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG-1.10.md#external-dependencies)
+ 
+## Tested on
+
+ - macOS 10.13.2, Windows 10
+ - Virtualbox 5.2.18
+ - Vagrant 2.1.2
+ 
 
