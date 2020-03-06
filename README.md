@@ -387,8 +387,6 @@ For Example:
  
 ## Tested on
 
- - macOS 10.13.2, Windows 10
- - Virtualbox 5.2.18
- - Vagrant 2.1.2
- 
-
+ - macOS 10.15.1
+ - Virtualbox 6.0.16 r135674
+ - Vagrant 2.2.6
