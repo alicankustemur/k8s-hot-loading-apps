@@ -59,7 +59,8 @@ kube-system   kube-scheduler-kube             1/1       Running   2          1h
 kube-system   weave-net-km79d
 ```
 
-To see `python-mysql Application`, type `kube:31000` in the browser .
+To see `python-mysql Application`, type `kube:31000` in the browser . 
+`( kube = 192.168.31.50 )`
 
 [![asciicast](https://asciinema.org/a/nLDxo9wRtgSHgA434Rkzorufk.svg)](https://asciinema.org/a/nLDxo9wRtgSHgA434Rkzorufk)
 
