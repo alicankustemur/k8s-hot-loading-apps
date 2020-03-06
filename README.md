@@ -388,6 +388,6 @@ For Example:
  
 ## Tested on
 
- - macOS 10.15.1
+ - macOS 10.15.1, Windows 10
  - Virtualbox 6.0.16 r135674
  - Vagrant 2.2.6
